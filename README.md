@@ -1,2 +1,40 @@
 # AI-QA-Toolshop
-AI-assisted quality assurance practice for an e-commerce demo application
+
+## 项目简介
+
+本项目以开源电商练习系统 Toolshop 为被测对象，开展软件测试与质量保障实践。
+
+## 项目目标
+
+- 分析核心业务流程和测试风险
+- 设计并执行功能测试用例
+- 记录和分析实际发现的缺陷
+- 使用 Python 与 pytest 验证部分稳定的 API 场景
+- 探索 AI 在测试点扩展和测试分析中的辅助作用
+
+## 测试范围
+
+- 用户登录
+- 商品查询
+- 购物车
+- 订单流程（以实际可用功能为准）
+
+## 项目目录
+
+- `docs/`：测试方案、风险分析及测试总结
+- `testcases/`：测试用例与设计说明
+- `bugs/`：缺陷记录
+- `automation/`：自动化测试脚本
+- `reports/`：测试执行摘要与报告
+
+## 技术栈
+
+Python、pytest、requests、Git、GitHub、AI 辅助测试。
+
+## 项目状态
+
+当前处于测试分析与项目搭建阶段，测试结果和自动化能力将在实际执行后更新。
+
+## 使用说明
+
+自动化测试的环境要求和运行命令将在脚本验证完成后补充。
