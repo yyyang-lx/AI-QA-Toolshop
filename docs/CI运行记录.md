@@ -13,7 +13,7 @@
 
 工作流通过 `requirements-test.txt` 安装测试依赖，并使用 pip 缓存减少重复安装时间。工作流只授予 `contents: read` 权限，并设置 10 分钟作业超时。UI 测试仍未纳入工作流，因为它们针对 With Bugs 演示站中已知异常的断言当前会失败；不能将这些预期失败作为必须全绿的 CI 门禁。
 
-依赖文件还包括 `requirements-ui.txt`，用于在本地安装 UI 自动化依赖；CI 当前仅安装 API 测试依赖。GitHub Actions 的真实运行状态仍待推送后确认。
+依赖文件还包括 `requirements-ui.txt`，用于在本地安装 UI 自动化依赖；CI 当前仅安装 API 测试依赖。
 
 ## 本地执行记录
 
@@ -35,7 +35,10 @@
 
 ## GitHub Actions 状态
 
-- 状态：待验证
-- 当前 Actions 运行结果：待用户推送后验证。
-- 本机未安装 GitHub CLI（`gh` 命令不可用），未能读取 Actions 执行记录或链接。
-- 验证方式：推送后在仓库 Actions 页面检查 `API tests` 工作流的 push 运行结果；创建 PR 时也会由 `pull_request` 触发。运行后将实际结论和运行链接补入本节。
+- 最新状态：成功
+- 工作流：`API tests`，由 push 事件触发
+- 分支与提交：`feature/test-docs`，`bd31aba1c789b6498d168861554608810b808030`
+- 执行时间：2026-10-22 11:16（Asia/Shanghai）
+- 结果：作业和 `Run API tests` 步骤均成功；该步骤运行商品及登录 API 测试命令。
+- 运行记录：[GitHub Actions run 39715942330](https://github.com/yyyang-lx/AI-QA-Toolshop/actions/runs/39715942330)
+- 说明：此结果只覆盖 API 工作流，不代表未纳入 CI 的 Playwright UI 用例通过。
