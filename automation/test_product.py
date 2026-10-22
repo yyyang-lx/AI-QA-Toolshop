@@ -3,13 +3,30 @@ from automation.api_client import APIClient
 
 
 def get_products(response):
-    """从接口响应中提取商品列表。"""
+    """按分页响应结构提取商品列表。"""
     data = response.json()
 
-    if isinstance(data, list):
-        return data
+    assert isinstance(data, dict), "商品接口响应应为分页 JSON 对象"
+    products = data.get("data")
+    assert isinstance(products, list), "商品接口响应的 data 字段应为列表"
+    return products
 
-    return data.get("data", [])
+
+def assert_product_shape(product):
+    """验证单个商品的关键字段及类型。"""
+    assert isinstance(product, dict), "商品项应为 JSON 对象"
+    product_id = product.get("id")
+    assert isinstance(product_id, int) and not isinstance(product_id, bool), (
+        "商品 id 应为整数"
+    )
+    assert isinstance(product.get("name"), str) and product["name"].strip(), (
+        "商品 name 应为非空字符串"
+    )
+    price = product.get("price")
+    assert isinstance(price, (int, float)) and not isinstance(price, bool), (
+        "商品 price 应为数字"
+    )
+    assert price >= 0, "商品 price 不应为负数"
 
 
 def test_product_list_api_status_code():
@@ -50,11 +67,7 @@ def test_product_list_contains_products():
         assert len(products) > 0
 
         for product in products:
-            assert product.get("id") is not None
-            assert isinstance(product.get("name"), str)
-            assert product["name"].strip() != ""
-            assert product.get("price") is not None
-            assert float(product["price"]) >= 0
+            assert_product_shape(product)
     finally:
         client.close()
 
@@ -74,6 +87,7 @@ def test_search_products_by_keyword():
         assert len(products) > 0
 
         for product in products:
+            assert_product_shape(product)
             assert keyword.lower() in product["name"].lower()
     finally:
         client.close()

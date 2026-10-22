@@ -50,11 +50,16 @@
 
 ```text
 AI-QA-Toolshop/
+├── .github/
+│   └── workflows/
+│       └── pytest.yml          # API 测试工作流
 ├── automation/                 # 自动化测试脚本
 ├── bugs/                       # 缺陷记录
 ├── docs/                       # 测试方案、风险分析及总结报告
 ├── reports/                    # 测试执行摘要
 ├── testcases/                  # 测试用例及设计说明
+├── requirements-test.txt       # API 测试依赖
+├── requirements-ui.txt         # UI 测试依赖
 ├── .gitignore
 └── README.md
 ```
@@ -64,7 +69,7 @@ AI-QA-Toolshop/
 - **测试对象：** Practice Software Testing - With Bugs
 - **测试类型：** Web 功能测试、边界值测试、异常场景测试
 - **主要方式：** 手工测试
-- **自动化方向：** 使用 Python、pytest 等工具探索核心场景自动化
+- **自动化工具：** Python、pytest、requests；UI 测试使用 Playwright Chromium
 
 测试网站：[With Bugs 在线演示环境](https://with-bugs.practicesoftwaretesting.com/)
 
@@ -74,9 +79,30 @@ AI-QA-Toolshop/
 
 项目包含 `automation/` 目录，用于存放自动化测试脚本。
 
-自动化测试以小范围、可维护的核心场景为目标，不追求单纯增加脚本数量。后续将根据实际完成情况逐步补充运行说明、测试结果及异常处理。
+自动化测试覆盖少量 API 和 UI 核心场景。API 测试适合在 CI 中运行；UI 测试连接在线 With Bugs 演示站，部分断言对应已记录的异常，当前仅供手动执行和查看证据。
 
-具体的脚本依赖、执行命令和运行结果以项目实际实现为准。
+### API 自动化测试
+
+环境要求：Python 3.10。安装测试依赖并运行 API 用例：
+
+```bash
+python -m pip install -r requirements-test.txt
+python -m pytest automation/test_product.py automation/test_login.py -q
+```
+
+API 用例会访问在线演示 API，因此运行结果受目标服务和网络状态影响。当前 GitHub Actions 工作流运行这组 API 用例。
+
+### UI 自动化测试
+
+`automation/test_cart_ui.py` 使用 Playwright。安装 UI 测试依赖及 Chromium 浏览器后，可运行：
+
+```bash
+python -m pip install -r requirements-ui.txt
+python -m playwright install chromium
+python -m pytest automation/test_cart_ui.py -q
+```
+
+UI 测试默认访问 With Bugs 演示站。可通过 `TOOLSHOP_UI_BASE_URL` 环境变量切换站点地址。商品在规定等待时间内未出现时，测试会以“前置条件/数据未就绪”标记失败；断言失败时会尝试保存一张截图到 `bugs/screenshots/`。UI 用例针对演示站中已记录的异常，部分断言当前预期会失败；执行结果应结合 `bugs/缺陷记录.csv` 和对应执行摘要解读。
 
 ## 8. 项目复盘
 
