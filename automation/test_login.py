@@ -13,59 +13,51 @@ def assert_login_rejected(response):
     assert not data.get("access_token"), "登录失败响应不应包含访问令牌"
 
 
-def test_login_success():
+def test_login_success(api_client):
     """验证正确的账号密码可以登录。"""
-    client = APIClient()
+    response = api_client.post(
+        "/users/login",
+        json={
+            "email": "customer@practicesoftwaretesting.com",
+            "password": "welcome01",
+        },
+    )
 
-    try:
-        response = client.post(
-            "/users/login",
-            json={
-                "email": "customer@practicesoftwaretesting.com",
-                "password": "welcome01",
-            },
-        )
+    assert response.status_code == 200
 
-        assert response.status_code == 200
-
-        data = response.json()
-        assert data.get("access_token")
-        assert data.get("token_type", "").lower() == "bearer"
-        assert data.get("expires_in", 0) > 0
-    finally:
-        client.close()
+    data = response.json()
+    assert data.get("access_token")
+    assert data.get("token_type", "").lower() == "bearer"
+    assert data.get("expires_in", 0) > 0
 
 
-def test_login_with_wrong_password():
+def test_login_with_wrong_password(api_client):
     """验证错误密码不能成功登录。"""
-    client = APIClient()
+    response = api_client.post(
+        "/users/login",
+        json={
+            "email": "customer@practicesoftwaretesting.com",
+            "password": "wrong_password_123",
+        },
+    )
 
-    try:
-        response = client.post(
-            "/users/login",
-            json={
-                "email": "customer@practicesoftwaretesting.com",
-                "password": "wrong_password_123",
-            },
-        )
-
-        assert_login_rejected(response)
-    finally:
-        client.close()
+    assert_login_rejected(response)
 
 
-def test_login_without_password():
+def test_login_without_password(api_client):
     """验证缺少密码时不能成功登录。"""
-    client = APIClient()
+    response = api_client.post(
+        "/users/login",
+        json={
+            "email": "customer@practicesoftwaretesting.com",
+        },
+    )
 
-    try:
-        response = client.post(
-            "/users/login",
-            json={
-                "email": "customer@practicesoftwaretesting.com",
-            },
-        )
+    response = api_client.post(
+        "/users/login",
+        json={
+            "email": "customer@practicesoftwaretesting.com",
+        },
+    )
 
-        assert_login_rejected(response)
-    finally:
-        client.close()
+    assert_login_rejected(response)

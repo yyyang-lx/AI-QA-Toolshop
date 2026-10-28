@@ -12,7 +12,7 @@ def create_session():
     """创建统一配置的 HTTP 会话。"""
     session = requests.Session()
 
-    # 不读取环境中的代理配置，避免本地代理影响测试请求
-    session.trust_env = False
+    # 读取环境中的代理配置，允许测试请求使用已配置的代理
+    session.trust_env = True
 
     return session

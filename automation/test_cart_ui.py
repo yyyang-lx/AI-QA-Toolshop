@@ -108,9 +108,12 @@ def test_add_product_and_open_cart(page):
 
 
 def test_add_to_cart_does_not_show_error(page):
-    """成功加入商品时不应向用户显示错误提示。"""
+    """确认购物车状态已更新后，成功加入商品不应显示错误提示。"""
     open_homepage(page)
     add_product_to_cart(page)
+
+    cart_link = page.get_by_role("link", name="cart")
+    expect(cart_link).to_have_text("1")
 
     error_alert = page.get_by_role("alert")
     try:
