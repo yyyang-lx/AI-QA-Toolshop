@@ -1,7 +1,4 @@
 
-from automation.api_client import APIClient
-
-
 def assert_login_rejected(response):
     """拒绝登录应返回客户端错误，且响应不能包含有效令牌。"""
     assert 400 <= response.status_code < 500, (
@@ -46,13 +43,6 @@ def test_login_with_wrong_password(api_client):
 
 def test_login_without_password(api_client):
     """验证缺少密码时不能成功登录。"""
-    response = api_client.post(
-        "/users/login",
-        json={
-            "email": "customer@practicesoftwaretesting.com",
-        },
-    )
-
     response = api_client.post(
         "/users/login",
         json={

@@ -52,7 +52,14 @@ AI-QA-Toolshop/
 ├── .github/
 │   └── workflows/
 │       └── pytest.yml          # API 测试工作流
-├── automation/                 # 自动化测试脚本
+├── automation/                 # 自动化测试脚本与共享封装
+│   ├── api_client.py           # 统一 API 会话、请求超时及请求方法
+│   ├── config.py               # API 地址、超时配置与会话创建
+│   ├── conftest.py             # pytest API 客户端 fixture
+│   ├── pages/                  # Playwright 页面对象
+│   ├── test_product.py         # 商品 API 自动化测试
+│   ├── test_login.py           # 登录 API 自动化测试
+│   └── test_cart_ui.py         # 购物车 UI 自动化测试
 ├── bugs/                       # 缺陷记录
 ├── docs/                       # 测试方案、风险分析及总结报告
 ├── reports/                    # 测试执行摘要
@@ -76,11 +83,13 @@ AI-QA-Toolshop/
 
 ## 7. 自动化测试说明
 
-项目包含 `automation/` 目录，用于存放自动化测试脚本。
+项目包含 `automation/` 目录，按 API 测试、UI 测试和共享封装组织脚本。API 请求通过 `APIClient` 和 pytest fixture 复用会话及超时配置；购物车 UI 测试使用 `pages/` 下的页面对象封装页面定位与操作。
 
 自动化测试覆盖少量 API 和 UI 核心场景。API 测试适合在 CI 中运行；UI 测试连接在线 With Bugs 演示站，部分断言对应已记录的异常，当前仅供手动执行和查看证据。
 
 ### API 自动化测试
+
+商品 API 用例与手工用例的对应关系及覆盖缺口见 [商品 API 自动化用例追溯](docs/商品API自动化用例追溯.md)。
 
 环境要求：Python 3.10。安装测试依赖并运行 API 用例：
 

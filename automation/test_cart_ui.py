@@ -7,10 +7,11 @@ from pathlib import Path
 import warnings
 
 import pytest
-from playwright.sync_api import Error as PlaywrightError
 from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 from playwright.sync_api import expect, sync_playwright
-
+from automation.pages.cart_page import CartPage
+from automation.pages.product_page import ProductPage
+from automation.pages.home_page import HomePage
 
 BASE_URL = os.getenv(
     "TOOLSHOP_UI_BASE_URL",
@@ -51,32 +52,16 @@ def page():
 
 
 def open_homepage(page):
-    """打开首页并确认站点可响应。"""
-    try:
-        response = page.goto(BASE_URL, wait_until="domcontentloaded", timeout=60_000)
-    except PlaywrightError as error:
-        pytest.fail(f"[环境/站点连接] 无法打开 {BASE_URL}：{error}")
-
-    assert response is not None, "[环境/站点连接] 首页导航没有收到 HTTP 响应"
-    assert response.status < 400, (
-        f"[站点响应] 首页返回异常状态码：{response.status}"
-    )
-    assert page.title().strip(), "[页面内容] 首页标题为空"
-    assert page.locator("body").inner_text().strip(), "[页面内容] 首页没有可见文本内容"
+    """打开并检查网站首页。"""
+    home_page = HomePage(page)
+    home_page.open(BASE_URL)
 
 
 def add_product_to_cart(page):
-    """从商品列表打开现货商品并加入购物车。"""
-    product = page.get_by_text(PRODUCT_NAME, exact=True)
-    try:
-        product.wait_for(state="visible", timeout=15_000)
-    except PlaywrightTimeoutError:
-        pytest.fail(
-            f"[前置条件/数据未就绪] 商品 {PRODUCT_NAME!r} 未在 15 秒内显示；"
-            "购物车操作未执行"
-        )
-    product.click()
-    page.get_by_role("button", name="Add to cart").click()
+    """从商品列表打开指定商品，并将其加入购物车。"""
+    product_page = ProductPage(page)
+    product_page.open_product(PRODUCT_NAME)
+    product_page.add_to_cart()
 
 
 def price_as_decimal(text):
@@ -98,12 +83,14 @@ def test_add_product_and_open_cart(page):
     open_homepage(page)
     add_product_to_cart(page)
 
-    cart_link = page.get_by_role("link", name="cart")
-    expect(cart_link).to_have_text("1")
+    cart_page = CartPage(page)
 
-    cart_link.click()
-    cart_row = page.locator("tr").filter(has_text=PRODUCT_NAME)
-    expect(cart_row).to_have_count(1)
+    expect(cart_page.cart_link).to_have_text("1")
+
+    cart_page.open()
+    cart_page.expect_product_visible(PRODUCT_NAME)
+
+    cart_row = cart_page.get_product_row(PRODUCT_NAME)
     expect(cart_row.locator("input")).to_have_value("1")
 
 
@@ -112,10 +99,10 @@ def test_add_to_cart_does_not_show_error(page):
     open_homepage(page)
     add_product_to_cart(page)
 
-    cart_link = page.get_by_role("link", name="cart")
-    expect(cart_link).to_have_text("1")
+    cart_page = CartPage(page)
+    expect(cart_page.cart_link).to_have_text("1")
 
-    error_alert = page.get_by_role("alert")
+    error_alert = cart_page.get_error_alert()
     try:
         error_alert.wait_for(state="visible", timeout=2_000)
     except PlaywrightTimeoutError:
@@ -127,17 +114,16 @@ def test_cart_line_total_matches_price_and_quantity(page):
     """购物车行金额应等于商品单价乘以数量。"""
     open_homepage(page)
     add_product_to_cart(page)
-    page.get_by_role("link", name="cart").click()
+    cart_page = CartPage(page)
+    cart_page.open()
 
-    cart_row = page.locator("tr").filter(has_text=PRODUCT_NAME)
-    expect(cart_row).to_have_count(1)
-    price = price_as_decimal(
-        cart_row.locator("[data-test='product-price']").inner_text()
-    )
-    quantity = int(cart_row.locator("input").input_value())
-    line_total = price_as_decimal(
-        cart_row.locator("[data-test='line-price']").inner_text()
-    )
+    cart_page.expect_product_visible(PRODUCT_NAME)
+
+    # 使用 CartPage 中封装的方法获取数据
+    price = price_as_decimal(cart_page.get_product_price(PRODUCT_NAME))
+    quantity = int(cart_page.get_product_quantity(PRODUCT_NAME))
+    line_total = price_as_decimal(cart_page.get_product_line_total(PRODUCT_NAME))
+
     assert line_total == price * quantity, (
         f"行金额应等于单价 {price} × 数量 {quantity}，实际为 {line_total}"
     )
@@ -147,11 +133,9 @@ def test_remove_product_from_cart(page):
     """点击购物车商品行的删除按钮后，商品应从清单中消失。"""
     open_homepage(page)
     add_product_to_cart(page)
-    page.get_by_role("link", name="cart").click()
+    cart_page = CartPage(page)
+    cart_page.open()
 
-    cart_row = page.locator("tr").filter(has_text=PRODUCT_NAME)
-    expect(cart_row).to_have_count(1)
-
-    cart_row.locator("a.btn-danger").click()
-
-    expect(page.locator("tr").filter(has_text=PRODUCT_NAME)).to_have_count(0)
+    cart_page.expect_product_visible(PRODUCT_NAME)
+    cart_page.remove_product(PRODUCT_NAME)
+    cart_page.expect_product_removed(PRODUCT_NAME)
